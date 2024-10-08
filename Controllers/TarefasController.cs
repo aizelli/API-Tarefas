@@ -26,10 +26,10 @@ namespace API_Task.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Tarefa>>> Gettarefas()
         {
-          if (_context.tarefas == null)
-          {
-              return NotFound();
-          }
+            if (_context.tarefas == null)
+            {
+                return NotFound();
+            }
             return await _context.tarefas.ToListAsync();
         }
 
@@ -37,10 +37,10 @@ namespace API_Task.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Tarefa>> GetTarefa(int id)
         {
-          if (_context.tarefas == null)
-          {
-              return NotFound();
-          }
+            if (_context.tarefas == null)
+            {
+                return NotFound();
+            }
             var tarefa = await _context.tarefas.FindAsync(id);
 
             if (tarefa == null)
@@ -87,10 +87,17 @@ namespace API_Task.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(tarefaDTO).State = EntityState.Modified;
-
             try
             {
+                var tarefa = new Tarefa
+                {
+                    id_tarefa = tarefaDTO.id_tarefa,
+                    data_conclusao = tarefaDTO.data_conclusao,
+                    data_prevista = tarefaDTO.data_prevista,
+                    descricao_tarefa = tarefaDTO.descricao_tarefa,
+                    fk_usuario = tarefaDTO.fk_usuario
+                };
+                _context.tarefas.Update(tarefa);
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
