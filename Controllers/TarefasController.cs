@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using API_Task.DBContext;
 using API_Task.Models;
+using API_Task.DTO;
 
 namespace API_Task.Controllers
 {
@@ -50,17 +51,43 @@ namespace API_Task.Controllers
             return tarefa;
         }
 
+        [HttpGet("usuario/{id}")]
+        public async Task<ActionResult<IEnumerable<TarefaDTO>>> GetTarafesPorUsuario(int id)
+        {
+            var tarefas = _context.tarefas.Where(t => t.fk_usuario == id).ToList();
+
+            if (tarefas == null || tarefas.Count == 0)
+            {
+                return NotFound(new { message = "Nenhuma tarefa encontrada para este usuário." });
+            }
+
+            List<TarefaDTO> tarefasDTO = new List<TarefaDTO>();
+            foreach (var item in tarefas)
+            {
+                tarefasDTO.Add(
+                    new TarefaDTO
+                    {
+                        id_tarefa = item.id_tarefa,
+                        data_conclusao = item.data_conclusao,
+                        data_prevista = item.data_prevista,
+                        descricao_tarefa = item.descricao_tarefa,
+                        fk_usuario = item.fk_usuario
+                    });
+            }
+            return Ok(tarefasDTO);
+        }
+
         // PUT: api/Tarefas/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTarefa(int id, Tarefa tarefa)
+        public async Task<IActionResult> PutTarefa(int id, TarefaDTO tarefaDTO)
         {
-            if (id != tarefa.id_tarefa)
+            if (id != tarefaDTO.id_tarefa)
             {
                 return BadRequest();
             }
 
-            _context.Entry(tarefa).State = EntityState.Modified;
+            _context.Entry(tarefaDTO).State = EntityState.Modified;
 
             try
             {
@@ -84,12 +111,22 @@ namespace API_Task.Controllers
         // POST: api/Tarefas
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Tarefa>> PostTarefa(Tarefa tarefa)
+        public async Task<ActionResult<TarefaDTO>> PostTarefa(TarefaDTO tarefaDTO)
         {
-          if (_context.tarefas == null)
-          {
-              return Problem("Entity set 'AppDBContext.tarefas'  is null.");
-          }
+            if (_context.tarefas == null)
+            {
+                return Problem("Entity set 'AppDBContext.Tarefas'  is null.");
+            }
+
+            var tarefa = new Tarefa
+            {
+                id_tarefa = tarefaDTO.id_tarefa,
+                descricao_tarefa = tarefaDTO.descricao_tarefa,
+                data_conclusao = tarefaDTO.data_conclusao,
+                data_prevista = tarefaDTO.data_prevista,
+                fk_usuario = tarefaDTO.fk_usuario
+            };
+
             _context.tarefas.Add(tarefa);
             await _context.SaveChangesAsync();
 
